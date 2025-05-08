@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone = mysqli_real_escape_string($conn, $_POST['phone']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
+    $role = isset($_POST['role']) ? $_POST['role'] : 'customer';
 
     // Validate input
     if (empty($username_input) || empty($name) || empty($email) || empty($phone) || empty($password) || empty($confirm_password)) {
@@ -51,27 +52,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check if username or email already exists
         $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
         if (!$stmt) {
-            die("Prepare failed: " . $conn->error);
-        }
-        $stmt->bind_param("ss", $username_input, $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            $error = "Username or Email already registered";
+            $error = "An error occurred while processing your registration. Please try again later.";
         } else {
-            // Hash password and insert user
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO users (username, name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, 'customer')");
-            if (!$stmt) {
-                die("Prepare failed: " . $conn->error);
-            }
-            $stmt->bind_param("sssss", $username_input, $name, $email, $phone, $hashed_password);
+            $stmt->bind_param("ss", $username_input, $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-            if ($stmt->execute()) {
-                $success = "Registration successful! Please login.";
+            if ($result->num_rows > 0) {
+                $error = "Username or Email already registered";
             } else {
-                $error = "Registration failed: " . $stmt->error;
+                // Hash password and insert user
+                $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $conn->prepare("INSERT INTO users (username, name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)");
+                if (!$stmt) {
+                    $error = "An error occurred while processing your registration. Please try again later.";
+                } else {
+                    $stmt->bind_param("ssssss", $username_input, $name, $email, $phone, $hashed_password, $role);
+
+                    if ($stmt->execute()) {
+                        // Registration successful, redirect to login with success message
+                        header("Location: login.php?registered=1");
+                        exit();
+                    } else {
+                        $error = "Registration failed: " . $stmt->error;
+                    }
+                }
             }
         }
     }
@@ -104,7 +109,7 @@ include 'includes/header.php';
                             </div>
                         </div>
                     <?php else: ?>
-                        <form method="POST" action="">
+                        <form method="POST" action="" id="register-form">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
                                 <input type="text" class="form-control" id="username" name="username" required>
@@ -129,6 +134,14 @@ include 'includes/header.php';
                             <div class="mb-3">
                                 <label for="confirm_password" class="form-label">Confirm Password</label>
                                 <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Register As</label>
+                                <select class="form-control" id="role" name="role" required>
+                                    <option value="customer" selected>Customer</option>
+                                    <option value="collector">Collector</option>
+                                    <option value="admin">Admin</option>
+                                </select>
                             </div>
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary">Register</button>
@@ -193,5 +206,16 @@ include 'includes/header.php';
     color: #aaa !important;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.location.hash === '#register-form') {
+        var form = document.getElementById('register-form');
+        if (form) {
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+});
+</script>
 
 <?php include 'includes/footer.php'; ?> 

@@ -87,7 +87,11 @@ include 'includes/header.php';
             <div class="card shadow-lg" style="background-color: #1a1a2e; color: #fff;">
                 <div class="card-body p-5">
                     <h2 class="text-center mb-4" style="color: #ffff80;">Login</h2>
-                    
+                    <?php if (isset($_GET['registered']) && $_GET['registered'] == 1): ?>
+                        <div class="alert alert-success" role="alert">
+                            Registration successful! Please login.
+                        </div>
+                    <?php endif; ?>
                     <?php if ($error): ?>
                         <div class="alert alert-danger" role="alert">
                             <?php echo htmlspecialchars($error); ?>
@@ -165,6 +169,12 @@ if (window.location.hash === '#login-form') {
     background-color: rgba(220, 53, 69, 0.1);
     border: 1px solid rgba(220, 53, 69, 0.2);
     color: #dc3545;
+}
+
+.alert-success {
+    background-color: rgba(25, 135, 84, 0.1);
+    border: 1px solid rgba(25, 135, 84, 0.2);
+    color: #198754;
 }
 </style>
 

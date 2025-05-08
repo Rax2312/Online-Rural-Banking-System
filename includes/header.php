@@ -560,7 +560,7 @@
                         <?php endif; ?>
                     <?php else: ?>
                         <li class="nav-item"><a class="nav-link" href="login.php#login-form"><i class="fas fa-sign-in-alt me-1"></i>Login</a></li>
-                        <li class="nav-item"><a class="nav-link" href="register.php"><i class="fas fa-user-plus me-1"></i>Register</a></li>
+                        <li class="nav-item"><a class="nav-link" href="register.php#register-form"><i class="fas fa-user-plus me-1"></i>Register</a></li>
                     <?php endif; ?>
                 </ul>
             </div>
